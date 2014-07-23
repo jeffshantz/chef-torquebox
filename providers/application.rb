@@ -27,7 +27,7 @@ use_inline_resources
 action :deploy do
   unless @current_resource.exists
 
-    cmd = [node[:torquebox][:command], 'deploy']
+    cmd = ["PATH=#{::File.dirname(node[:torquebox][:jruby][:command])}:" + '$PATH', node[:torquebox][:command], 'deploy']
     cmd += ["--name", @new_resource.name]
     cmd += ["--env", @new_resource.env || 'production']
     cmd += ["--context-path", @new_resource.context_path] if @new_resource.context_path
@@ -73,10 +73,10 @@ def knob_exists?(test_knob)
 
   knob_yml = knob_file(test_knob.name)
 
-  if File.exist?(knob_yml)
-    knob = YAML::load_file(knob_yml)
+  if ::File.exist?(knob_yml)
+    knob = ::YAML::load_file(knob_yml)
 
-    name = File.basename(knob_yml, '-knob.yml')
+    name = ::File.basename(knob_yml, '-knob.yml')
     root = knob["application"] && knob["application"]["root"] || nil
     env = knob["environment"] && knob["environment"]["RACK_ENV"] || nil
     context_path = knob["web"] && knob["web"]["context"] || nil
@@ -91,10 +91,10 @@ def knob_exists?(test_knob)
            test_knob.root == root &&
            test_knob.env  == env  &&
            test_knob.context_path == context_path &&
-           ! File.exist?(failed_file(name)) &&
-           (File.exist?(dodeploy_file(name)) ||
-            File.exist?(isdeploying_file(name)) ||
-            File.exist?(deployed_file(name)))
+           ! ::File.exist?(failed_file(name)) &&
+           (::File.exist?(dodeploy_file(name)) ||
+            ::File.exist?(isdeploying_file(name)) ||
+            ::File.exist?(deployed_file(name)))
   else
     false
   end
@@ -104,7 +104,7 @@ end
 
 
 def knob_file(name)
-  File.join(jboss_home, 'standalone', 'deployments', "#{name}-knob.yml")
+  ::File.join(node[:torquebox][:jboss][:home], 'standalone', 'deployments', "#{name}-knob.yml")
 end
 
 # Unused

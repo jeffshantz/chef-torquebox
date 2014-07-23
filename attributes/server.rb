@@ -39,6 +39,6 @@ default[:torquebox][:jboss][:config] = 'standalone.xml'
 default[:torquebox][:home] = File.join(node[:torquebox][:install_dir], node[:torquebox][:current_version_link])
 default[:torquebox][:jboss][:home] = File.join(node[:torquebox][:home], 'jboss')
 default[:torquebox][:jruby][:home] = File.join(node[:torquebox][:home], 'jruby')
-default[:torquebox][:jruby][:command] = File.join(node[:torquebox][:jruby][:home], 'jruby')
-default[:torquebox][:command] = File.join(node[:torquebox][:jruby][:home], 'torquebox')
+default[:torquebox][:jruby][:command] = File.join(node[:torquebox][:jruby][:home], 'bin', 'jruby')
+default[:torquebox][:command] = File.join(node[:torquebox][:jruby][:home], 'bin', 'torquebox')
 
