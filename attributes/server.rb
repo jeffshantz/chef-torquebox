@@ -18,16 +18,16 @@
 #
 
 default[:torquebox][:version] = '3.1.1'
-default[:torquebox][:dist_file] = "torquebox-dist-#{node[:torquebox][:version]}-bin.zip"
-default[:torquebox][:dist_url] = "http://torquebox.org/release/org/torquebox/torquebox-dist/#{node[:torquebox][:version]}/#{node[:torquebox][:dist_file]}"
 default[:torquebox][:install_dir] = '/opt/torquebox'
-default[:torquebox][:extracted_dir] = "torquebox-#{node[:torquebox][:version]}"
 default[:torquebox][:current_version_link] = 'current'
 
 # Platform-specific packages that are required for installation.
 default[:torquebox][:packages] = value_for_platform(
   ["centos"] => {
    "default" => ["unzip"]
+  },
+  ["ubuntu"] => {
+    "default" => ["unzip", "libaio1", "libaio-dev"]
   }
 )
 

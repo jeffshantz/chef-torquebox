@@ -7,5 +7,6 @@ long_description 'Installs/configures torquebox'
 version          '0.1.1'
 
 supports 'centos', '>= 6.5'
+supports 'ubuntu', '>= 14.04'
 
 depends 'java', '~> 1.22.0'

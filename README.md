@@ -5,6 +5,7 @@ Chef cookbook to install / configure Torquebox on a node.
 ## Supported Platforms
 
 * CentOS (tested on 6.5)
+* Ubuntu (tested on 14.04)
 
 ## Dependencies
 
@@ -27,6 +28,12 @@ This cookbook depends on the following cookbooks:
     <td>String</td>
     <td>Version of Torquebox to install (supports upgrading)</td>
     <td><tt>3.1.1</tt></td>
+  </tr>
+  <tr>
+    <td><tt>node[:torquebox][:dist_url]</tt></td>
+    <td>String</td>
+    <td>Full URL of Torquebox distribution to install (zip file).  If <tt>nil</tt>, the default URL is used.</td>
+    <td><tt>nil</tt></td>
   </tr>
   <tr>
     <td><tt>node[:torquebox][:install_dir]</tt></td>

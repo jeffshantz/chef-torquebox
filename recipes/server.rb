@@ -19,6 +19,10 @@
 
 include_recipe "java"
 
+dist_file = "torquebox-dist-#{node[:torquebox][:version]}-bin.zip"
+dist_url = node[:torquebox][:dist_url] || "http://torquebox.org/release/org/torquebox/torquebox-dist/#{node[:torquebox][:version]}/#{dist_file}"
+extracted_dir = "torquebox-#{node[:torquebox][:version]}"
+
 current_version_dir = File.join(node[:torquebox][:install_dir], node[:torquebox][:current_version_link])
 
 # Platform-specific packages that are required for installation.
@@ -38,7 +42,10 @@ user node[:torquebox][:jboss][:user] do
 end
 
 directory node[:torquebox][:install_dir] do
-  mode    '0755'
+  owner    "torquebox"
+  group    "torquebox"
+  mode     "0755"
+  recursive true
 end
 
 [
@@ -64,15 +71,15 @@ log 'switch torquebox version' do
 end
 
 remote_file 'torquebox package' do
-  source   node[:torquebox][:dist_url]
-  path     File.join(node[:torquebox][:install_dir], node[:torquebox][:dist_file])
+  source   dist_url
+  path     File.join(node[:torquebox][:install_dir], dist_file)
   action   :nothing
 end
 
 bash 'extract torquebox' do
   user   node[:torquebox][:jboss][:user]
   cwd    node[:torquebox][:install_dir]
-  code   "unzip -o #{node[:torquebox][:dist_file]}"
+  code   "unzip -o #{dist_file}"
   action :nothing
 end
 
@@ -82,20 +89,37 @@ end
 # the only_if condition, so we resort to bash.
 bash 'stop torquebox before upgrade' do
   user    "root"
-  code    "/etc/init.d/torquebox stop"
-  only_if { File.exists?("/etc/init.d/torquebox") }
+  code    "service torquebox stop"
+  only_if { File.exists?("/etc/init.d/torquebox") || File.exists?("/etc/init/torquebox.conf") }
   action  :nothing
 end
 
 link 'torquebox current directory' do
-  target_file File.join(node[:torquebox][:install_dir], node[:torquebox][:current_version_link])
-  to          File.join(node[:torquebox][:install_dir], node[:torquebox][:extracted_dir])
+  target_file current_version_dir
+  to          File.join(node[:torquebox][:install_dir], extracted_dir)
   notifies    :restart, "service[torquebox]", :delayed
 end
 
-link "/etc/init.d/torquebox" do
-  to     File.join(node[:torquebox][:jboss][:home], "bin", "init.d", "jboss-as-standalone.sh")
-  notifies :restart, "service[torquebox]", :delayed
+# Install init script
+
+case node["platform"]
+
+when "centos"
+  link "/etc/init.d/torquebox" do
+    to     File.join(node[:torquebox][:jboss][:home], "bin", "init.d", "jboss-as-standalone.sh")
+    notifies :restart, "service[torquebox]", :delayed
+  end
+
+when "ubuntu"
+  template "/etc/init/torquebox.conf" do
+    source "torquebox.conf.erb"
+    owner  "root"
+    group  "root"
+    mode   "0644"
+    variables :torquebox_dir => current_version_dir
+    notifies :restart, "service[torquebox]", :delayed
+  end
+
 end
 
 directory "/etc/jboss-as" do
@@ -121,6 +145,14 @@ end
 
 service "torquebox" do
   supports :status => true, :restart => true, :reload => true
+
+  case node["platform"]
+  when "ubuntu"
+    if node["platform_version"].to_f >= 9.10
+      provider Chef::Provider::Service::Upstart
+    end
+  end
+
   action   :enable
 end
 
